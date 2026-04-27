@@ -1,7 +1,5 @@
-streamlit
-pandas
-numpy
-sqlalchemy
-psycopg2-binary
-scikit-learn
-openpyxl
+streamlit==1.35.0
+pandas==2.2.2
+numpy==1.26.4
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
