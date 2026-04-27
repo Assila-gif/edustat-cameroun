@@ -2,237 +2,222 @@ import os
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 from sqlalchemy import create_engine, text
+from sklearn.linear_model import LinearRegression
 
 # Configuration de la page
 st.set_page_config(
-    page_title="EduStat L2 Informatique",
-    page_icon="🎓",
+    page_title="EduStat Pro - L2 Informatique",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ================= CUSTOM CSS (L'aspect "Réel/HTML") =================
+# ================= DESIGN & ANIMATIONS (CSS AVANCÉ) =================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono&display=swap');
 
-/* Style global pour ressembler à une App Web */
-html, body, [class*="css"] {
-    font-family: 'Syne', sans-serif;
-}
-
+/* Fond plus épais et texturé */
 .stApp {
-    background-color: #07071a;
+    background-color: #050514;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.1) 0, transparent 50%), 
-        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0, transparent 50%);
+        linear-gradient(rgba(124, 58, 237, 0.05) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.05) 2px, transparent 2px);
+    background-size: 50px 50px;
 }
 
-/* Personnalisation de la Sidebar (Navigation latérale) */
+/* Bordures épaisses pour séparer les sections */
 [data-testid="stSidebar"] {
-    background-color: #0c0c20 !important;
-    border-right: 1px solid #1e1e40 !important;
+    background-color: #0a0a1f !important;
+    border-right: 5px solid #1e1e40 !important;
 }
 
-/* Header stylisé en HTML Pur */
 .main-header {
-    background: linear-gradient(90deg, #1e1e40 0%, #0c0c20 100%);
-    padding: 30px;
-    border-radius: 15px;
-    border: 1px solid #2a2a5a;
-    margin-bottom: 30px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    background: #0f0f2d;
+    border: 4px solid #2a2a5a;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 10px 10px 0px #1e1e40;
 }
 
-.logo-container {
-    background: #7c3aed;
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 30px;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+/* Animations au clic sur boutons et champs */
+button, input, select, textarea {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.title-text h1 {
-    margin: 0;
-    color: #ffffff;
-    font-size: 2.2rem;
-    font-weight: 800;
+button:active {
+    transform: scale(0.95) !important;
+    background: #a855f7 !important;
 }
 
-.title-text p {
-    margin: 0;
-    color: #a855f7;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
+input:focus {
+    border: 3px solid #7c3aed !important;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.4) !important;
+    transform: translateY(-2px);
 }
 
-/* Cartes de statistiques (Dashboard) */
+/* Cartes statistiques */
 .stat-card {
     background: #0f0f2d;
     padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #1e1e40;
-    text-align: center;
-    transition: transform 0.3s ease;
+    border-radius: 15px;
+    border: 3px solid #1e1e40;
+    box-shadow: 5px 5px 0px #1e1e40;
 }
-.stat-card:hover {
-    transform: translateY(-5px);
-    border-color: #7c3aed;
-}
-
-/* Inputs de la sidebar */
-.stTextInput input, .stNumberInput input {
-    background-color: #121235 !important;
-    color: white !important;
-    border: 1px solid #2a2a5a !important;
-}
-
-/* Badge Admis/Ajourné */
-.badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-.badge-admis { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
-.badge-ajourne { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
-
 </style>
 """, unsafe_allow_html=True)
 
-# ================= DATABASE & LOGIC =================
-DATABASE_URL = "sqlite:///./edustat.db"
+# ================= BASE DE DONNÉES =================
+DATABASE_URL = "sqlite:///./edustat_pro.db"
 engine = create_engine(DATABASE_URL)
 
 def init_db():
     with engine.connect() as conn:
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS students (
+            CREATE TABLE IF NOT EXISTS students_v2 (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                matricule TEXT, name TEXT, prenom TEXT, age INTEGER,
-                prog1 FLOAT, structures FLOAT, maths FLOAT,
-                moyenne_s1 FLOAT, moyenne_s2 FLOAT, moyenne_generale FLOAT
+                matricule TEXT, nom TEXT, prenom TEXT, age INTEGER,
+                maths_fond FLOAT, proba_stats FLOAT, 
+                archi_syst FLOAT, reseaux FLOAT,
+                algorigthmique FLOAT, bdd_sql FLOAT,
+                genie_logiciel FLOAT, anglais FLOAT,
+                moy_s1 FLOAT, moy_s2 FLOAT, moy_gen FLOAT
             )
         """))
         conn.commit()
 
 init_db()
 
-# ================= SIDEBAR (FORMULAIRE) =================
+# ================= SIDEBAR : FORMULAIRE COMPLET L2 =================
 with st.sidebar:
-    st.markdown("### ➕ Ajouter un étudiant")
-    with st.form("add_student_form", clear_on_submit=True):
-        nom_complet = st.text_input("Nom complet")
-        matricule = st.text_input("Matricule", value="2026-L2-")
-        age = st.number_input("Âge", 16, 50, 20)
-        
+    st.markdown("### 📝 DOSSIER ÉTUDIANT L2")
+    with st.form("form_l2", clear_on_submit=True):
+        st.markdown("**Identité**")
+        col_id1, col_id2 = st.columns(2)
+        nom = col_id1.text_input("Nom")
+        prenom = col_id2.text_input("Prénom")
+        mat = st.text_input("Matricule (ex: 24L2000)")
+        age = st.number_input("Âge", 16, 45, 20)
+
         st.markdown("---")
-        st.markdown("**Semestre 1**")
-        p1 = st.number_input("Programmation", 0.0, 20.0, 0.0)
-        s1 = st.number_input("Structures", 0.0, 20.0, 0.0)
-        m1 = st.number_input("Mathématiques", 0.0, 20.0, 0.0)
-        
-        submitted = st.form_submit_button("ENREGISTRER L'ÉTUDIANT")
-        
-        if submitted:
-            moy_s1 = round((p1 + s1 + m1) / 3, 2)
-            # Pour l'exemple, on simule une moyenne S2 aléatoire si non saisie
-            moy_s2 = 0.0 
-            moy_gen = round((moy_s1 + moy_s2) / 2, 2) if moy_s2 > 0 else moy_s1
+        st.markdown("**Bloc Scientifique**")
+        c1, c2 = st.columns(2)
+        m_fond = c1.number_input("Maths Fond.", 0.0, 20.0, 10.0)
+        proba = c2.number_input("Proba / Stats", 0.0, 20.0, 10.0)
+
+        st.markdown("**Bloc Technique & Système**")
+        c3, c4 = st.columns(2)
+        archi = c3.number_input("Archi / Syst.", 0.0, 20.0, 10.0)
+        res = c4.number_input("Réseaux", 0.0, 20.0, 10.0)
+
+        st.markdown("**Bloc Développement**")
+        c5, c6 = st.columns(2)
+        algo = c5.number_input("Algorithmique", 0.0, 20.0, 10.0)
+        bdd = c6.number_input("BDD / SQL", 0.0, 20.0, 10.0)
+
+        st.markdown("**Transversal**")
+        c7, c8 = st.columns(2)
+        gl = c7.number_input("Génie Log.", 0.0, 20.0, 10.0)
+        ang = c8.number_input("Anglais Tech.", 0.0, 20.0, 10.0)
+
+        submit = st.form_submit_button("VALIDER L'INSCRIPTION")
+
+        if submit:
+            # Calcul automatique des moyennes
+            s1 = (m_fond + archi + algo + ang) / 4
+            s2 = (proba + res + bdd + gl) / 4
+            gen = (s1 + s2) / 2
             
             with engine.connect() as conn:
                 conn.execute(text("""
-                    INSERT INTO students (matricule, name, prenom, age, prog1, structures, maths, moyenne_s1, moyenne_s2, moyenne_generale)
-                    VALUES (:m, :n, :p, :a, :p1, :s1, :m1, :ms1, :ms2, :mg)
-                """), {"m": matricule, "n": nom_complet, "p": "", "a": age, "p1": p1, "s1": s1, "m1": m1, "ms1": moy_s1, "ms2": 0.0, "mg": moy_s1})
+                    INSERT INTO students_v2 (matricule, nom, prenom, age, maths_fond, proba_stats, archi_syst, reseaux, algorigthmique, bdd_sql, genie_logiciel, anglais, moy_s1, moy_s2, moy_gen)
+                    VALUES (:m, :n, :p, :a, :m1, :m2, :m3, :m4, :m5, :m6, :m7, :m8, :s1, :s2, :gen)
+                """), {"m": mat, "n": nom, "p": prenom, "a": age, "m1": m_fond, "m2": proba, "m3": archi, "m4": res, "m5": algo, "m6": bdd, "m7": gl, "m8": ang, "s1": s1, "s2": s2, "gen": gen})
                 conn.commit()
-            st.success("Étudiant ajouté !")
+            st.success("Données synchronisées !")
             st.rerun()
 
-# ================= MAIN UI =================
+# ================= DASHBOARD PRINCIPAL =================
+df = pd.read_sql("SELECT * FROM students_v2", engine)
 
-# Header HTML
+# Header
 st.markdown("""
 <div class="main-header">
-    <div class="logo-container">🎓</div>
-    <div class="title-text">
-        <h1>EduStat</h1>
-        <p>L2 INFORMATIQUE • ANALYSE DES PERFORMANCES</p>
+    <div style="display: flex; align-items: center; gap: 25px;">
+        <div style="font-size: 50px; background: #7c3aed; padding: 15px; border-radius: 15px;">📊</div>
+        <div>
+            <h1 style="margin:0; color:white; font-family: 'Syne', sans-serif;">EduStat PRO <span style="color:#7c3aed;">L2</span></h1>
+            <p style="margin:0; color:#6060a0; font-family: 'Space Mono';">CENTRE DE GESTION ACADÉMIQUE AVANCÉ</p>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Récupération des données
-df = pd.read_sql("SELECT * FROM students", engine)
-
 if df.empty:
-    st.markdown("""
-    <div style="text-align:center; padding:100px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/6598/6598519.png" width="100" style="opacity:0.2">
-        <h3 style="color:#3a3a5a; margin-top:20px;">AUCUN ÉTUDIANT ENREGISTRÉ</h3>
-        <p style="color:#2a2a4a;">Utilisez le formulaire à gauche pour commencer.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.warning("En attente de données... Veuillez remplir le formulaire à gauche.")
 else:
-    # Dashboard Metrics en colonnes HTML
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.markdown(f"""<div class="stat-card">
-            <p style="color:#6060a0; font-size:0.8rem;">MOYENNE CLASSE</p>
-            <h2 style="color:white; margin:0;">{df['moyenne_generale'].mean():.2f}</h2>
-        </div>""", unsafe_allow_html=True)
-    with m2:
-        st.markdown(f"""<div class="stat-card">
-            <p style="color:#6060a0; font-size:0.8rem;">TOTAL ÉTUDIANTS</p>
-            <h2 style="color:white; margin:0;">{len(df)}</h2>
-        </div>""", unsafe_allow_html=True)
-    with m3:
-        taux = (df['moyenne_generale'] >= 10).sum() / len(df) * 100
-        st.markdown(f"""<div class="stat-card">
-            <p style="color:#6060a0; font-size:0.8rem;">TAUX RÉUSSITE</p>
-            <h2 style="color:#22c55e; margin:0;">{taux:.1f}%</h2>
-        </div>""", unsafe_allow_html=True)
+    tab1, tab2, tab3 = st.tabs(["📉 Tableau de Bord", "🔍 Analyse Prédictive", "📋 Registre"])
 
-    st.write("###")
+    with tab1:
+        # Metrics
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Moyenne Générale", f"{df['moy_gen'].mean():.2f}")
+        m2.metric("Meilleure Note", f"{df['moy_gen'].max():.2f}")
+        m3.metric("Effectif", len(df))
+        taux = (df['moy_gen'] >= 10).sum() / len(df) * 100
+        m4.metric("Taux de Réussite", f"{taux:.1f}%")
 
-    # Tableau des résultats
-    st.markdown("#### 📋 Liste des étudiants")
-    
-    # Formatage pour l'affichage "Réel"
-    display_df = df.copy()
-    display_df['Status'] = display_df['moyenne_generale'].apply(
-        lambda x: "✅ ADMIS" if x >= 10 else "❌ AJOURNÉ"
-    )
-    
-    st.dataframe(
-        display_df[['matricule', 'name', 'age', 'moyenne_s1', 'moyenne_generale', 'Status']],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "moyenne_generale": st.column_config.NumberColumn("Moy. Générale", format="%.2f / 20"),
-            "Status": st.column_config.TextColumn("Résultat")
-        }
-    )
+        st.markdown("---")
+        
+        col_left, col_right = st.columns(2)
+        
+        with col_left:
+            st.markdown("#### 📊 Comparaison S1 vs S2")
+            fig_compare = px.bar(df, x="nom", y=["moy_s1", "moy_s2"], barmode="group",
+                                color_discrete_sequence=['#7c3aed', '#06b6d4'],
+                                template="plotly_dark")
+            st.plotly_chart(fig_compare, use_container_width=True)
 
-    # Graphique de performance
-    st.write("###")
-    st.markdown("#### 📈 Distribution des notes")
-    st.area_chart(df.set_index('name')['moyenne_generale'], color="#7c3aed")
+        with col_right:
+            st.markdown("#### 🥧 Répartition des niveaux")
+            bins = [0, 10, 12, 14, 20]
+            labels = ['Ajourné', 'Passable', 'Assez Bien', 'Bien/Très Bien']
+            df['Mention'] = pd.cut(df['moy_gen'], bins=bins, labels=labels)
+            fig_pie = px.pie(df, names="Mention", color_discrete_sequence=px.colors.sequential.Purp_r,
+                             hole=0.4, template="plotly_dark")
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-# Suppression (Optionnel)
-with st.expander("⚙️ Paramètres avancés"):
-    if st.button("Réinitialiser la base de données"):
-        with engine.connect() as conn:
-            conn.execute(text("DROP TABLE IF EXISTS students"))
-            conn.commit()
-        init_db()
-        st.rerun()
+    with tab2:
+        st.markdown("### 🤖 Régression Linéaire & Prédictions")
+        st.write("Analyse de la corrélation entre les **Mathématiques** et la **Moyenne Générale**.")
+        
+        if len(df) > 1:
+            X = df[['maths_fond']].values
+            y = df['moy_gen'].values
+            model = LinearRegression().fit(X, y)
+            prediction = model.predict(X)
+
+            fig_reg = go.Figure()
+            fig_reg.add_trace(go.Scatter(x=df['maths_fond'], y=df['moy_gen'], mode='markers', name='Étudiants', marker=dict(color='#06b6d4', size=10)))
+            fig_reg.add_trace(go.Scatter(x=df['maths_fond'], y=prediction, mode='lines', name='Ligne de Régression', line=dict(color='#7c3aed', width=3)))
+            fig_reg.update_layout(template="plotly_dark", xaxis_title="Note en Mathématiques Fond.", yaxis_title="Moyenne Générale")
+            st.plotly_chart(fig_reg, use_container_width=True)
+            
+            st.info(f"💡 Coefficient de corrélation : **{model.score(X, y):.2f}**. Plus ce score est proche de 1, plus les maths influencent la réussite générale.")
+        else:
+            st.info("Besoin d'au moins 2 étudiants pour calculer la régression.")
+
+    with tab3:
+        st.markdown("#### 📋 Liste complète des résultats")
+        st.dataframe(df.style.highlight_max(axis=0, color='#1e1e40'), use_container_width=True)
+
+# Bouton de nettoyage
+if st.sidebar.button("🗑️ Vider la base"):
+    with engine.connect() as conn:
+        conn.execute(text("DROP TABLE students_v2"))
+        conn.commit()
+    st.rerun()
