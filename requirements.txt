@@ -4,3 +4,4 @@ numpy==1.26.4
 sqlalchemy==2.0.30
 psycopg2-binary==2.9.9
 matplotlib==3.9.0
+scikit-learn
